@@ -66,7 +66,7 @@ fn setup_player(
     asset_server: Res<AssetServer>,
     mut texture_layout: ResMut<Assets<TextureAtlasLayout>>,
 ) {
-    let layout = TextureAtlasLayout::from_grid(Vec2::new(32.0, 25.0), 4, 1, None, None);
+    let layout = TextureAtlasLayout::from_grid(Vec2::new(32.0, 30.0), 4, 1, None, None);
     let texture_atlas_layout = texture_layout.add(layout);
     let animation_indices = AnimationIndices { first: 1, last: 3 };
 
@@ -84,7 +84,7 @@ fn setup_player(
         animation_indices,
         AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
         RigidBody::Dynamic,
-        Collider::cuboid(0.5, 0.5),
+        Collider::cuboid(7.0, 9.0),
     ));
 }
 
@@ -111,6 +111,6 @@ fn player_moviment(mut query: Query<(&mut Transform, &mut Player)>) {
             Direction::Right => transform.translation.x += 6.0,
         };
 
-        println!("\t player position: {:?}", transform.translation);
+        println!("player position: {:?}", transform.translation);
     }
 }

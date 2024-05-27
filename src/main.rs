@@ -30,9 +30,10 @@ fn main() {
                 .set(ImagePlugin::default_nearest()),
         )
         .add_plugins(PlayerPlugin)
+        .add_plugins(RapierDebugRenderPlugin::default())
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
         .insert_resource(RapierConfiguration {
-            gravity: Vec2::new(0.0, -9.8),
+            gravity: Vec2::new(0.0, -900.8),
             force_update_from_transform_changes: true,
             physics_pipeline_active: true,
             query_pipeline_active: true,
@@ -52,26 +53,17 @@ fn spawn_camera(mut command: Commands) {
 }
 
 //isso será removido no futuro
-fn world_gravity(mut command: Commands) {
-    command.spawn((
-        SpriteBundle {
+fn world_gravity(mut commands: Commands) {
+    // Ground
+    commands
+        .spawn(SpriteBundle {
             sprite: Sprite {
-                color: Color::rgb(1.0, 1.0, 1.0),
+                color: Color::rgb(0.3, 0.3, 0.3),
+                custom_size: Some(Vec2::new(500.0, 20.0)),
                 ..Default::default()
             },
-            transform: Transform {
-                translation: Vec3::new(0.0, -10.0, 0.0),
-                scale: Vec3::new(8.0, 8.0, 0.0),
-                ..Default::default()
-            },
+            transform: Transform::from_xyz(0.0, -100.0, 0.0),
             ..Default::default()
-        },
-        Collider::cuboid(50.0, 1.0),
-    ));
-
-    command.spawn((
-        TransformBundle::from(Transform::from_xyz(0.0, 5.0, 0.0)),
-        RigidBody::Dynamic,
-        Collider::cuboid(0.5, 0.5),
-    ));
+        })
+        .insert(Collider::cuboid(250.0, 10.0));
 }
