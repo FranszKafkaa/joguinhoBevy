@@ -1,5 +1,8 @@
+mod animator;
+mod enemy;
 mod player;
 
+use animator::{AnimationIndices, AnimationTimer};
 use bevy::{
     prelude::*,
     window::{EnabledButtons, WindowTheme},
@@ -7,6 +10,7 @@ use bevy::{
 
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_rapier2d::prelude::*;
+use enemy::EnemyPlugin;
 use player::PlayerPlugin;
 
 #[derive(Component)]
@@ -33,10 +37,15 @@ fn main() {
                 })
                 .set(ImagePlugin::default_nearest()),
         )
-        .add_plugins(WorldInspectorPlugin::default())
-        .add_plugins(PlayerPlugin)
-        .add_plugins(RapierDebugRenderPlugin::default())
-        .add_plugins(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0))
+        .add_plugins((
+            WorldInspectorPlugin::default(),
+            PlayerPlugin,
+            EnemyPlugin,
+            RapierDebugRenderPlugin::default(),
+            RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0),
+        ))
+        .register_type::<AnimationTimer>()
+        .register_type::<AnimationIndices>()
         .add_systems(Startup, (spawn_camera, world_gravity))
         .add_systems(Update, collision_event)
         .run();
@@ -59,21 +68,8 @@ fn world_gravity(mut commands: Commands) {
             transform: Transform::from_xyz(0.0, -100.0, 0.0),
             ..Default::default()
         },
-        Collider::cuboid(250.0, 10.0),
+        Collider::cuboid(250.0, 20.0),
         Ground,
-    ));
-
-    commands.spawn((
-        SpriteBundle {
-            sprite: Sprite {
-                color: Color::rgb(1.0, 1.0, 0.0),
-                custom_size: Some(Vec2::new(50.0, 70.0)),
-                ..Default::default()
-            },
-            transform: Transform::from_xyz(20.0, -50.0, 0.0),
-            ..Default::default()
-        },
-        Collider::cuboid(25.0, 35.0),
     ));
 }
 

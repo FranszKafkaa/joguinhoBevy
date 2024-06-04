@@ -1,12 +1,31 @@
-use bevy::prelude::*;
-use bevy_rapier2d::prelude::*;
+use bevy::{
+    app::{Plugin, Startup, Update},
+    asset::{AssetServer, Assets},
+    ecs::{
+        component::Component, schedule::IntoSystemConfigs, system::{Commands, Query, Res, ResMut}
+    },
+    input::{keyboard::KeyCode, ButtonInput},
+    math::{Vec2, Vec3},
+    reflect::Reflect,
+    sprite::{Sprite, SpriteSheetBundle, TextureAtlas, TextureAtlasLayout},
+    text::TextStyle,
+    time::{Timer, TimerMode},
+    transform::components::Transform,
+    ui::node_bundles::TextBundle,
+};
+use bevy_rapier2d::{
+    dynamics::{GravityScale, LockedAxes, RigidBody, Velocity},
+    geometry::{ActiveEvents, Collider, Friction, Restitution},
+};
+
+use crate::animator::{animate_sprite, AnimationIndices, AnimationTimer};
 
 #[derive(Component, Reflect)]
-#[reflect(Component)]
 pub struct Player {
     direction: Direction,
     action: Action,
     jump_force: f32,
+    life: u32,
     pub jumping: bool,
 }
 
@@ -16,18 +35,10 @@ impl Default for Player {
             direction: Direction::None,
             action: Action::Idle,
             jump_force: 1000.0,
+            life: 100,
             jumping: false,
         }
     }
-}
-
-#[derive(Component, Deref, DerefMut)]
-struct AnimationTimer(Timer);
-
-#[derive(Component)]
-struct AnimationIndices {
-    first: usize,
-    last: usize,
 }
 
 #[derive(Reflect, PartialEq, Eq, Debug)]
@@ -52,24 +63,8 @@ pub struct PlayerPlugin;
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.register_type::<Player>()
-            .add_systems(Startup, setup_player)
+            .add_systems(Startup, (setup_player, player_hud).chain())
             .add_systems(Update, (animate_sprite, player_moviment, player_input));
-    }
-}
-
-fn animate_sprite(
-    time: Res<Time>,
-    mut query: Query<(&AnimationIndices, &mut AnimationTimer, &mut TextureAtlas)>,
-) {
-    for (indices, mut timer, mut atlas) in &mut query {
-        timer.tick(time.delta());
-        if timer.just_finished() {
-            atlas.index = if atlas.index == indices.last {
-                indices.first
-            } else {
-                atlas.index + 1
-            };
-        }
     }
 }
 
@@ -98,7 +93,7 @@ fn setup_player(
         },
         Player::default(),
         animation_indices,
-        AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
+        AnimationTimer(Timer::from_seconds(0.4, TimerMode::Repeating)),
         RigidBody::Dynamic,
         LockedAxes::ROTATION_LOCKED_Z,
         Friction::coefficient(0.5),
@@ -162,4 +157,16 @@ fn player_moviment(mut query: Query<(&mut Transform, &mut Velocity, &mut Player,
             velocity.linvel.y = player.jump_force;
         }
     }
+}
+
+fn player_hud(mut command: Commands, player_query: Query<&Player>) {
+    let player = player_query.single();
+
+    command.spawn(TextBundle::from_section(
+        format!("HP: {:?}", player.life),
+        TextStyle {
+            font_size: 100.0,
+            ..Default::default()
+        },
+    ));
 }
