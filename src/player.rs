@@ -131,12 +131,8 @@ fn player_input(input: Res<ButtonInput<KeyCode>>, mut query: Query<&mut Player>)
     }
 }
 
-fn player_moviment(
-    mut query: Query<(&mut Transform, &mut Velocity, &mut Player)>,
-    mut sprite_query: Query<&mut Sprite, With<Player>>,
-) {
-    let mut sprite = sprite_query.single_mut();
-    for (mut transform, mut velocity, mut player) in query.iter_mut() {
+fn player_moviment(mut query: Query<(&mut Transform, &mut Velocity, &mut Player, &mut Sprite)>) {
+    for (mut transform, mut velocity, mut player, mut sprite) in query.iter_mut() {
         match player.direction {
             Direction::Left => {
                 transform.translation.x -= 6.0;
